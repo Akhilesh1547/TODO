@@ -1,0 +1,96 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/todo.css' %}">
+</head>
+<body>
+    <button id="dark-mode-toggle">Toggle Dark Mode</button>
+
+    <div class="todo-container">
+        <h2>Welcome, {{ user.username }}!</h2>
+
+        <form id="task-form">
+            {% csrf_token %}
+            <input type="text" required class="inp" placeholder="Add Task" name="title" id="task-title">
+            
+            <select id="task-category">
+                <option value="Work">Work</option>
+                <option value="Personal">Personal</option>
+                <option value="Study">Study</option>
+            </select>
+
+            <select id="task-priority">
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+            </select>
+
+            <input type="date" id="task-due-date">
+            <button type="submit" class="submit-button">Add Task</button>
+        </form>
+
+        <h3>Your Tasks</h3>
+        <ul id="task-list">
+            {% for task in tasks %}
+                <li class="{% if task.completed %}completed{% endif %}">
+                    <span>{{ task.title }}</span> 
+                    <span class="category">{{ task.category }}</span> 
+                    <span class="priority-{{ task.priority|lower }}">{{ task.priority }}</span> 
+                    <span class="due-date">{{ task.due_date }}</span> 
+                    <button onclick="markCompleted({{ task.id }})">✔</button>
+                </li>
+            {% empty %}
+                <li id="no-tasks">No tasks added yet.</li>
+            {% endfor %}
+        </ul>
+
+        <a href="{% url 'logout' %}">Logout</a>
+    </div>
+
+    <script>
+        document.getElementById("task-form").addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            let title = document.getElementById("task-title").value;
+            let category = document.getElementById("task-category").value;
+            let priority = document.getElementById("task-priority").value;
+            let dueDate = document.getElementById("task-due-date").value;
+            let csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            fetch("{% url 'add_task' %}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "X-CSRFToken": csrfToken
+                },
+                body: `title=${encodeURIComponent(title)}&category=${category}&priority=${priority}&due_date=${dueDate}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let taskList = document.getElementById("task-list");
+                    document.getElementById("no-tasks")?.remove();
+
+                    let newTask = document.createElement("li");
+                    newTask.innerHTML = `<span>${data.task.title}</span> <button onclick="markCompleted(${data.task.id})">✔</button>`;
+                    taskList.prepend(newTask);
+
+                    document.getElementById("task-title").value = "";
+                }
+            });
+        });
+
+        function markCompleted(taskId) {
+            fetch("{% url 'complete_task' %}", {
+                method: "POST",
+                headers: { "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value },
+                body: `task_id=${taskId}`
+            }).then(() => location.reload());
+        }
+    </script>
+</body>
+</html>

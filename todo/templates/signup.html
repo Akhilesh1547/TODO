@@ -1,0 +1,81 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/signup.css' %}">
+</head>
+<body>
+    <div class="signup-login">
+        <div class="signup-box">
+            <form method="post" action="{% url 'signup' %}" onsubmit="return validateForm()">
+                {% csrf_token %}
+                <div class="heading">Sign Up</div>
+                <div class="line"></div>
+
+                <div class="field">
+                    <label for="username"><b>Username</b></label>
+                    <input type="text" required class="inp" placeholder="Enter your Username" name="username" id="username" minlength="3" maxlength="20">
+                </div>
+                
+                <div class="field">
+                    <label for="email"><b>Email</b></label>
+                    <input type="email" required class="inp" placeholder="Enter your Email" name="email" id="email" pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$">
+                </div>
+                
+                <div class="field">
+                    <label for="password"><b>Password</b></label>
+                    <div class="password-container">
+                        <input type="password" required class="inp" placeholder="Enter Password" name="password" id="password" minlength="4">
+                        <span id="toggle-password" class="eye-icon">&#128065;</span> <!-- Eye icon -->
+                    </div>
+                </div>
+                
+                <div class="field">
+                    <label for="confirm-password"><b>Confirm Password</b></label>
+                    <input type="password" required class="inp" placeholder="Confirm Password" name="confirm_password" id="confirm-password">
+                </div>
+                
+                <div id="password-error" style="color: red; display: none;">Passwords do not match!</div>
+
+                <div class="field">
+                    <input type="submit" class="submit-button" value="Sign Up">
+                </div>
+            </form>
+            
+            <div class="field">
+                <b>Already have an account?</b>
+                <a class="anc" href="{% url 'login' %}">Login here</a>
+            </div>
+        </div> 
+    </div>
+
+    <!-- JavaScript for toggling password visibility & validation -->
+    <script>
+        function validateForm() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const errorText = document.getElementById('password-error');
+
+            if (password !== confirmPassword) {
+                errorText.style.display = "block";
+                return false;
+            } else {
+                errorText.style.display = "none";
+                return true;
+            }
+        }
+
+        const togglePassword = document.getElementById('toggle-password');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', () => {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            togglePassword.textContent = type === 'password' ? '👁️' : '🙈';
+        });
+    </script>
+</body>
+</html>
